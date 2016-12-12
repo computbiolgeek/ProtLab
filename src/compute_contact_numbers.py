@@ -1,9 +1,9 @@
 """
-    @summary: 
+    @summary:
     @author: Bian Li
     @contact: bian.li@vanderbilt.edu
     @copyright: Bian Li
-    @change: 
+    @change:
 """
 
 from argparse import ArgumentParser
@@ -21,4 +21,24 @@ parser.add_argument( "-c", "--cutoff", dest = "cutoff", type = float, required =
 parser.add_argument( "-s", "--sequence_separation", dest = "sequence_separation", type = int,
                     required = False, default = 3, help = "sequence separation beyond which "
                     "residues will be considered" )
+parser.add_argument( "-v", "--verbose", dest = "verbose", required = False, action = "store_true",
+                    help = "verbose mode" )
 args = parser.parse_args()
+
+# print collected command line arguments
+if args.verbose:
+    print( args.infile )
+    print( args.outfile )
+    print( args.type )
+    print( args.cutoff )
+    print( args.sequence_separation )
+    print( args.verbose )
+
+# parse the given PDB file
+pdb_parser = PDBParser( PERMISSIVE = 1 )
+structure = pdb_parser.get_structure( "pdb", args.infile )
+
+# compute contact number for each residue
+for residue in structure.get_residues():
+    for atom in residue.get_atoms():
+        atom.get_name()

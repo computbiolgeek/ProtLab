@@ -44,18 +44,18 @@ class AminoAcidSelect( Select ):
 if __name__ == "__main__":
     # parse input PDB file, PERMISSIVE = 1 ignores a number of common errors in PDB files
     pdb_parser = PDBParser( PERMISSIVE = 1 )
-    structure = pdb_parser.get_structure("pdb", args.infile)
+    structure = pdb_parser.get_structure( "pdb", args.infile )
     # do PDB file cleaning
     pdb_io = PDBIO()
     if not args.split_chains:
         pdb_io.set_structure( structure )
-        pdb_io.save( args.outfile_prefix + ".pdb", AminoAcidSelect() )
+        pdb_io.save( args.outfile_prefix + "_cleaned.pdb", AminoAcidSelect() )
     else:
         print( "Splitting chains ..." )
         for chain in structure.get_chains():
             pdb_io.set_structure( chain )
             chain_id = chain.get_id()
-            print( "Found chain " + chain_id + " and let's see whether it is a protein chain or not")
+            print( "Found chain " + chain_id + " and let's see whether it is a protein chain or not" )
             has_aa = has_non_aa = False
             for residue in chain:
                 if args.verbose:
@@ -69,10 +69,10 @@ if __name__ == "__main__":
                 if has_aa and has_non_aa:
                     break
             if not has_aa and has_non_aa:
-                print( "This chain only contains stuff other than amino acid residues, it's not a protein chain! " 
-                "Save without cleaning!")    
-                pdb_io.save( args.outfile_prefix + chain_id + ".pdb")
+                print( "This chain only contains stuff other than amino acid residues, it's not a protein chain! "
+                "Save without cleaning!" )
+                pdb_io.save( args.outfile_prefix + "_" + chain_id + ".pdb" )
             else:
                 print( "This chain contains amino acid residues, presumably it's a protein chain, lets clean it!" )
-                pdb_io.save( args.outfile_prefix + chain_id + ".pdb", AminoAcidSelect() )
-        
+                pdb_io.save( args.outfile_prefix + "_" + chain_id + "_cleaned.pdb", AminoAcidSelect() )
+
