@@ -3,7 +3,7 @@
     @author: Bian Li
     @contact: bian.li@vanderbilt.edu
     @copyright: Bian Li
-    @change:
+    @change: 12/12/16 the argument to the np.cos() function was converted to radians
 """
 
 from argparse import ArgumentParser
@@ -18,12 +18,15 @@ parser.add_argument( "-o", "--outfile", dest = "outfile", required = True,
                     help = "output file to store computed contact numbers" )
 parser.add_argument( "-t", "--type", dest = "type", choices = {"weighted", "unweighted"},
                      default = "weighted", help = "the type of contact number definition" )
-parser.add_argument( "-b", "--bounds", dest = "bounds", nargs = 2, type = float, required = False,
+parser.add_argument( "-b", "--bounds", dest = "bounds", nargs = 2, type = float,
                      default = [4, 11.4], help = "cutoff distances within which residues will be considered" )
 parser.add_argument( "-s", "--sequence_separation", dest = "sequence_separation", type = int,
-                    required = False, default = 3, help = "sequence separation beyond which "
+                     default = 3, help = "sequence separation beyond which "
                     "residues will be considered" )
-parser.add_argument( "-v", "--verbose", dest = "verbose", required = False, action = "store_true",
+parser.add_argument( "-m", "--measurement_point", dest = "measurement_point",
+                     choices = {"CA", "CB", "Centroid"}, default = "Centroid",
+                     help = "points between which to measure the distance" )
+parser.add_argument( "-v", "--verbose", dest = "verbose", action = "store_true",
                     help = "verbose mode" )
 args = parser.parse_args()
 
@@ -34,6 +37,7 @@ if args.verbose:
     print( "type:                " + args.type )
     print( "bounds:              " + str( args.bounds ) )
     print( "sequence separation: " + str( args.sequence_separation ) )
+    print( "measurement_point:   " + args.measurement_point )
     print( "verbose:             " + str( args.verbose ) )
 
 # parse the given PDB file
@@ -57,41 +61,80 @@ def ComputeSideChainCentroid( residue ):
             number_sidechain_atoms += 1
     return centroid / number_sidechain_atoms
 
-def ComputeContactNumber( residue, neighbor_list, bounds, cn_type = "unweighted" ):
+def ComputeContactNumber( residue,
+                          neighbor_list,
+                          bounds,
+                          measurement_point = "Centroid",
+                          cn_type = "unweighted" 
+                          ):
     """
+        @summary: Computes the contact number for the given residue and its neighbor list.
+         
+        @param residue: amino acid residue for which to compute the contact number
+        @param neighbor_list: a list of neighboring amino acid resdiues
+        @param bounds: a list containing the lower distance and upper distance bounds
+        @param measurement_point: one of {"CA", "CB", "Centroid"}
+        @param cn_type: weighted or unweighted 
+        
+        @see: Bian Li, et al JCIM 2016 for algorithmic details
+          
     """
     # compute contact number
     cn = 0
-    if cn_type == "unweighted":
-        cn = len( neighbor_list )
-    else:
-        centroid = ComputeSideChainCentroid( residue )
+    d_ijs = []
+    if measurement_point == "Centroid":
+        residue_p = ComputeSideChainCentroid( residue )
         for neighbor in neighbor_list:
-            neighor_centroid = ComputeSideChainCentroid( neighbor )
-            d_ij = np.linalg.norm( centroid - neighor_centroid )
-            if d_ij <= bounds[0]:
+            neighbor_p = ComputeSideChainCentroid( neighbor )
+            d_ijs.append( np.linalg.norm( residue_p - neighbor_p ) )
+    else:
+        if residue.get_resname() == "GLY":
+            residue_p = residue["CA"].get_coord()
+        else:
+            residue_p = residue[measurement_point].get_coord()
+        for neighbor in neighbor_list:
+            if neighbor.get_resname() == "GLY":
+                neighbor_p = neighbor["CA"].get_coord()
+            else:
+                neighbor_p = neighbor[measurement_point].get_coord()
+            d_ijs.append( np.linalg.norm( residue_p - neighbor_p ) ) 
+    for d_ij in d_ijs:
+        if d_ij <= bounds[0]:
+            cn += 1
+        elif d_ij > bounds[0] and d_ij <= bounds[1]:
+            if cn_type == "unweighted":
                 cn += 1
             else:
-                cn += ( 1.0 / 2 ) * np.cos( ( d_ij - bounds[0] ) / ( bounds[1] - bounds[0] ) ) + 1.0 / 2
+                cn += ( 1.0 / 2 ) * ( 
+                    np.cos( ( d_ij - bounds[0] ) / ( bounds[1] - bounds[0] ) * np.pi ) + 1 
+                )
     return cn
 
-# compute contact number for each residue
-atom_list = list( structure.get_atoms() )
-ns = NeighborSearch( atom_list )
-contact_numbers = []
-for residue in structure.get_residues():
-    centroid = ComputeSideChainCentroid( residue )
-    # compile a list of neighbors for the current residue
-    neighbor_list = [res for res in ns.search( centroid, args.bounds[1], 'R' )
-                     if res.get_id()[1] - residue.get_id()[1] > args.sequence_separation
-                        or res.get_id()[1] - residue.get_id()[1] < -args.sequence_separation]
-    residue_id = residue.get_id()[1]
-    contact_numbers.append( 
-        ( residue_id, ComputeContactNumber( residue, neighbor_list, args.bounds, args.type ) )
-    )
-
-# write contact numbers into a .csv file
-with open( args.outfile, "wt" ) as f:
-    csv_f = csv.writer( f )
-    for row in contact_numbers:
-        csv_f.writerow( row )
+if __name__ == "__main__":
+    
+    # compute contact number for each residue
+    atom_list = list( structure.get_atoms() )
+    ns = NeighborSearch( atom_list )
+    contact_numbers = []
+    for residue in structure.get_residues():
+        if args.measurement_point == "CA" or residue.get_resname() == "GLY":
+            measurement_point = residue["CA"].get_coord()
+        elif args.measurement_point == "CB":
+                measurement_point = residue["CB"].get_coord()
+        else:
+            measurement_point = ComputeSideChainCentroid( residue )
+        # compile a list of neighbors for the current residue
+        neighbor_list = [res for res in ns.search( measurement_point, args.bounds[1], 'R' )
+                         if res.get_id()[1] - residue.get_id()[1] > args.sequence_separation
+                            or res.get_id()[1] - residue.get_id()[1] < -args.sequence_separation]
+        residue_id = residue.get_id()[1]
+        contact_numbers.append( 
+            ( residue_id, ComputeContactNumber( residue, neighbor_list, args.bounds,
+                                                args.measurement_point, args.type ) )
+        )
+    
+    # write contact numbers into a .csv file
+    with open( args.outfile, "wt" ) as f:
+        csv_f = csv.writer( f )
+        for row in contact_numbers:
+            csv_f.writerow( row )
