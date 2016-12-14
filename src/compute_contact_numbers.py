@@ -11,39 +11,6 @@ from Bio.PDB import PDBParser, NeighborSearch
 import numpy as np
 import csv
 
-parser = ArgumentParser( description = "Hi there, I compute contact numbers for you." )
-parser.add_argument( "-i", "--infile", dest = "infile", required = True,
-                    help = "input PDB file for computing contact numbers" )
-parser.add_argument( "-o", "--outfile", dest = "outfile", required = True,
-                    help = "output file to store computed contact numbers" )
-parser.add_argument( "-t", "--type", dest = "type", choices = {"weighted", "unweighted"},
-                     default = "weighted", help = "the type of contact number definition" )
-parser.add_argument( "-b", "--bounds", dest = "bounds", nargs = 2, type = float,
-                     default = [4, 11.4], help = "cutoff distances within which residues will be considered" )
-parser.add_argument( "-s", "--sequence_separation", dest = "sequence_separation", type = int,
-                     default = 3, help = "sequence separation beyond which "
-                    "residues will be considered" )
-parser.add_argument( "-m", "--measurement_point", dest = "measurement_point",
-                     choices = {"CA", "CB", "Centroid"}, default = "Centroid",
-                     help = "points between which to measure the distance" )
-parser.add_argument( "-v", "--verbose", dest = "verbose", action = "store_true",
-                    help = "verbose mode" )
-args = parser.parse_args()
-
-# print collected command line arguments
-if args.verbose:
-    print( "input file:          " + args.infile )
-    print( "output file:         " + args.outfile )
-    print( "type:                " + args.type )
-    print( "bounds:              " + str( args.bounds ) )
-    print( "sequence separation: " + str( args.sequence_separation ) )
-    print( "measurement_point:   " + args.measurement_point )
-    print( "verbose:             " + str( args.verbose ) )
-
-# parse the given PDB file
-pdb_parser = PDBParser( PERMISSIVE = 1 )
-structure = pdb_parser.get_structure( "pdb", args.infile )
-
 def ComputeSideChainCentroid( residue ):
     """
         C = (v1 + ... + vn) / n
@@ -65,19 +32,19 @@ def ComputeContactNumber( residue,
                           neighbor_list,
                           bounds,
                           measurement_point = "Centroid",
-                          cn_type = "unweighted" 
+                          cn_type = "unweighted"
                           ):
     """
         @summary: Computes the contact number for the given residue and its neighbor list.
-         
+
         @param residue: amino acid residue for which to compute the contact number
         @param neighbor_list: a list of neighboring amino acid resdiues
         @param bounds: a list containing the lower distance and upper distance bounds
         @param measurement_point: one of {"CA", "CB", "Centroid"}
-        @param cn_type: weighted or unweighted 
-        
+        @param cn_type: weighted or unweighted
+
         @see: Bian Li, et al JCIM 2016 for algorithmic details
-          
+
     """
     # compute contact number
     cn = 0
@@ -97,7 +64,7 @@ def ComputeContactNumber( residue,
                 neighbor_p = neighbor["CA"].get_coord()
             else:
                 neighbor_p = neighbor[measurement_point].get_coord()
-            d_ijs.append( np.linalg.norm( residue_p - neighbor_p ) ) 
+            d_ijs.append( np.linalg.norm( residue_p - neighbor_p ) )
     for d_ij in d_ijs:
         if d_ij <= bounds[0]:
             cn += 1
@@ -106,12 +73,48 @@ def ComputeContactNumber( residue,
                 cn += 1
             else:
                 cn += ( 1.0 / 2 ) * ( 
-                    np.cos( ( d_ij - bounds[0] ) / ( bounds[1] - bounds[0] ) * np.pi ) + 1 
+                    np.cos( ( d_ij - bounds[0] ) / ( bounds[1] - bounds[0] ) * np.pi ) + 1
                 )
     return cn
 
-if __name__ == "__main__":
-    
+def main():
+    """
+    """
+    # specify command line flags
+    parser = ArgumentParser( description = "Hi there, I compute contact numbers for you." )
+    parser.add_argument( "-i", "--infile", dest = "infile", required = True,
+                        help = "input PDB file for computing contact numbers" )
+    parser.add_argument( "-o", "--outfile", dest = "outfile", required = True,
+                        help = "output file to store computed contact numbers" )
+    parser.add_argument( "-t", "--type", dest = "type", choices = {"weighted", "unweighted"},
+                         default = "weighted", help = "the type of contact number definition" )
+    parser.add_argument( "-b", "--bounds", dest = "bounds", nargs = 2, type = float,
+                         default = [4, 11.4], help = "cutoff distances within which residues will be considered" )
+    parser.add_argument( "-s", "--sequence_separation", dest = "sequence_separation", type = int,
+                         default = 3, help = "sequence separation beyond which "
+                        "residues will be considered" )
+    parser.add_argument( "-m", "--measurement_point", dest = "measurement_point",
+                         choices = {"CA", "CB", "Centroid"}, default = "Centroid",
+                         help = "points between which to measure the distance" )
+    parser.add_argument( "-v", "--verbose", dest = "verbose", action = "store_true",
+                        help = "verbose mode" )
+    # parse command line arguments
+    args = parser.parse_args()
+
+    # print collected command line arguments
+    if args.verbose:
+        print( "input file:          " + args.infile )
+        print( "output file:         " + args.outfile )
+        print( "type:                " + args.type )
+        print( "bounds:              " + str( args.bounds ) )
+        print( "sequence separation: " + str( args.sequence_separation ) )
+        print( "measurement_point:   " + args.measurement_point )
+        print( "verbose:             " + str( args.verbose ) )
+
+    # parse the given PDB file
+    pdb_parser = PDBParser( PERMISSIVE = 1 )
+    structure = pdb_parser.get_structure( "pdb", args.infile )
+
     # compute contact number for each residue
     atom_list = list( structure.get_atoms() )
     ns = NeighborSearch( atom_list )
@@ -132,9 +135,12 @@ if __name__ == "__main__":
             ( residue_id, ComputeContactNumber( residue, neighbor_list, args.bounds,
                                                 args.measurement_point, args.type ) )
         )
-    
+
     # write contact numbers into a .csv file
     with open( args.outfile, "wt" ) as f:
         csv_f = csv.writer( f )
         for row in contact_numbers:
             csv_f.writerow( row )
+
+if __name__ == "__main__":
+    main()
