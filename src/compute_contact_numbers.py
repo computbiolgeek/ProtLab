@@ -7,9 +7,12 @@
 """
 
 from argparse import ArgumentParser
-from Bio.PDB import PDBParser, NeighborSearch
-import numpy as np
 import csv
+
+from Bio.PDB import PDBParser, NeighborSearch
+
+import numpy as np
+
 
 def ComputeSideChainCentroid( residue ):
     """
@@ -107,7 +110,7 @@ def main():
         print( "output file:         " + args.outfile )
         print( "type:                " + args.type )
         print( "bounds:              " + str( args.bounds ) )
-        print( "sequence separation: " + str( args.sequence_separation ) )
+        print( "sequence_separation: " + str( args.sequence_separation ) )
         print( "measurement_point:   " + args.measurement_point )
         print( "verbose:             " + str( args.verbose ) )
 

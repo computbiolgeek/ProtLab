@@ -109,9 +109,3 @@ def GetContacts(coordinates, residues, cutoff):
             if dist_ij < cutoff:
                 contacts[(residues[i], residues[j])].append(dist_ij)
     return res_freqs, contacts
-
-def GetContactNumbers(coordinates, residues, cutoff):
-    """
-        @todo: 
-    """
-    pass
