@@ -25,7 +25,7 @@ def ComputeSideChainCentroid( residue ):
     backbone_atoms = {'N', 'CA', 'C', 'O'}
     centroid = np.array( [0.0, 0.0, 0.0] )
     number_sidechain_atoms = 0
-    for atom in residue.get_atom():
+    for atom in residue.get_list():
         if atom.get_name() not in backbone_atoms:
             centroid += atom.get_coord()
             number_sidechain_atoms += 1
