@@ -6,6 +6,9 @@
     @contact: bian.li@vanderbilt.edu
     @copyright: Bian Li
     @change: 12/12/16 the argument to the np.cos() function was converted to radians
+             25/08/17 changed get_atom() function call to get_list() for compatibility with older Biopython versions.
+                      added an option for considering residues only from different chains. 
+             
 """
 
 from argparse import ArgumentParser
