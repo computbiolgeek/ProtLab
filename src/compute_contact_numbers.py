@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
     @summary:
     @author: Bian Li
@@ -8,9 +10,7 @@
 
 from argparse import ArgumentParser
 import csv
-
 from Bio.PDB import PDBParser, NeighborSearch
-
 import numpy as np
 
 
@@ -96,6 +96,8 @@ def main():
     parser.add_argument( "-s", "--sequence_separation", dest = "sequence_separation", type = int,
                          default = 3, help = "sequence separation beyond which "
                         "residues will be considered" )
+    parser.add_argument( "-c", "--different_chains", dest = "different_chains", action = "store_true", default = False, 
+                        help = "consider only residues from different chains")
     parser.add_argument( "-m", "--measurement_point", dest = "measurement_point",
                          choices = {"CA", "CB", "Centroid"}, default = "Centroid",
                          help = "points between which to measure the distance" )
@@ -112,6 +114,7 @@ def main():
         print( "bounds:              " + str( args.bounds ) )
         print( "sequence_separation: " + str( args.sequence_separation ) )
         print( "measurement_point:   " + args.measurement_point )
+        print( "different chains:    " + str( args.different_chains ) )
         print( "verbose:             " + str( args.verbose ) )
 
     # parse the given PDB file
@@ -133,9 +136,14 @@ def main():
         neighbor_list = [res for res in ns.search( measurement_point, args.bounds[1], 'R' )
                          if res.get_id()[1] - residue.get_id()[1] > args.sequence_separation
                             or res.get_id()[1] - residue.get_id()[1] < -args.sequence_separation]
+        # if consider only different chains
+        if args.different_chains:
+            neighbor_list = [res for res in neighbor_list if res.get_full_id()[2] != residue.get_full_id()[2]]
+        
         residue_id = residue.get_id()[1]
+        chain_id = residue.get_full_id()[2]
         contact_numbers.append( 
-            ( residue_id, ComputeContactNumber( residue, neighbor_list, args.bounds,
+            ( residue_id, chain_id, ComputeContactNumber( residue, neighbor_list, args.bounds,
                                                 args.measurement_point, args.type ) )
         )
 
