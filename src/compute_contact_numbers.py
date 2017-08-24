@@ -125,10 +125,11 @@ def main():
     structure = pdb_parser.get_structure( "pdb", args.infile )
 
     # compute contact number for each residue
-    atom_list = list( structure.get_atoms() )
+    model = structure[0] # consider only the first model if the PDB file has multiple models 
+    atom_list = list( model.get_atoms() )
     ns = NeighborSearch( atom_list )
     contact_numbers = []
-    for residue in structure.get_residues():
+    for residue in model.get_residues():
         if args.measurement_point == "CA" or residue.get_resname() == "GLY":
             measurement_point = residue["CA"].get_coord()
         elif args.measurement_point == "CB":
