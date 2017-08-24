@@ -4,7 +4,6 @@
     @summary:
     @author: Bian Li
     @contact: bian.li@vanderbilt.edu
-    @copyright: Bian Li
     @change: 12/12/16 the argument to the np.cos() function was converted to radians
              25/08/17 changed get_atom() function call to get_list() for compatibility with older Biopython versions.
                       added an option for considering residues only from different chains. 
@@ -100,7 +99,7 @@ def main():
                          default = 3, help = "sequence separation beyond which "
                         "residues will be considered" )
     parser.add_argument( "-c", "--different_chains", dest = "different_chains", action = "store_true", default = False, 
-                        help = "consider only residues from different chains")
+                        help = "true if consider only residues from different chains, else consider all chains")
     parser.add_argument( "-m", "--measurement_point", dest = "measurement_point",
                          choices = {"CA", "CB", "Centroid"}, default = "Centroid",
                          help = "points between which to measure the distance" )
@@ -137,13 +136,14 @@ def main():
         else:
             measurement_point = ComputeSideChainCentroid( residue )
         # compile a list of neighbors for the current residue
-        neighbor_list = [res for res in ns.search( measurement_point, args.bounds[1], 'R' )
-                         if res.get_id()[1] - residue.get_id()[1] > args.sequence_separation
-                            or res.get_id()[1] - residue.get_id()[1] < -args.sequence_separation]
+        neighbor_list = list(ns.search( measurement_point, args.bounds[1], 'R' ))
         # if consider only different chains
         if args.different_chains:
             neighbor_list = [res for res in neighbor_list if res.get_full_id()[2] != residue.get_full_id()[2]]
-        
+        else:
+            neighbor_list = [res for res in neighbor_list
+                         if res.get_id()[1] - residue.get_id()[1] > args.sequence_separation
+                            or res.get_id()[1] - residue.get_id()[1] < -args.sequence_separation]
         residue_id = residue.get_id()[1]
         chain_id = residue.get_full_id()[2]
         contact_numbers.append( 
