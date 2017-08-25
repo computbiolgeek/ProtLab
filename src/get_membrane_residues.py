@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 """
-    @summary: 
+    @summary: Given an OPM PDB file, this script extracts residues that are within the membrane,
+    and returns them into a new PDB file.
     @author: Bian Li
     @contact: bian.li@vanderbilt.edu
 """
