@@ -8,18 +8,18 @@ use Carp qw(carp croak);
 use Data::Dumper;
 
 my $db;
-my $pdb_list;
+my $pdb_id;
 my $output;
 
 # set up commandline options
 GetOptions(
-	"pdb_list=s" => \$pdb_list,
+	"pdb_id=s"   => \$pdb_id,
 	"output=s"   => \$output,
 	"db=s"       => \$db,
 ) or die usage();
 
 # check whether required commandline paramemters are provided
-unless ( defined $pdb_list && defined $output && $db ) {
+unless ( defined $pdb_id && defined $output && $db ) {
 	die usage();
 }
 
@@ -29,13 +29,13 @@ unless ( -d $db ) {
 }
 
 # the following is the main logic of the task
-open my $fh, "<", $pdb_list or die "Could not open $pdb_list for reading: $!";
-chomp( my @pdb_ids = <$fh> );
-close($fh);
+# open my $fh, "<", $pdb_list or die "Could not open $pdb_list for reading: $!";
+# chomp( my @pdb_ids = <$fh> );
+# close($fh);
 
 # open file for writing
 open my $ofh, ">", $output or die "Could not open $output for writing: $!";
-foreach my $pdb_id (@pdb_ids) {
+# foreach my $pdb_id (@pdb_ids) {
 	get_pdb_from_opm( $pdb_id, $db );
 	my $pdb_file       = $db . "/" . $pdb_id . ".pdb";
 	my %chain2cacoords = get_chain2cacoords_hash($pdb_file);
@@ -46,7 +46,7 @@ foreach my $pdb_id (@pdb_ids) {
 	foreach my $id (@tm_chain_ids) {
 		print $ofh $pdb_id . $id . "\n";
 	}
-}
+# }
 close($ofh);
 
 ######################INTERFACE SUBROUTINE##########################
@@ -180,7 +180,7 @@ sub get_pdb_from_opm {
 # Returns      : 
 ####################################################################
 sub usage {
-	print "Usage: $0 --pdb_list <a file containing a list of pdb ids> --output <output file name>\n";
+	print "Usage: $0 --pdb_id <a file containing a list of pdb ids> --db <database> --output <output file name>\n";
 }
 
 =head1 NAME
@@ -197,7 +197,7 @@ This script takes a list of pdb ids and extracts chains in each pdb that are tra
 
 =head1 USAGE
 
-extract_tm_chains.pl --pdb_list pdb_list.txt --db ~/database --output tm_chains.txt
+extract_tm_chains.pl --pdb_id pdb_list.txt --db ~/database --output tm_chains.txt
 
 =head1 AUTHOR
 

@@ -10,26 +10,30 @@ from os.path import basename
 def main():
     # parse command line arguments
     parser = ArgumentParser()
-    parser.add_argument('-i', '--input', dest='input', help='input PDB file')
+    parser.add_argument('-p', '--pdb', dest='pdb', help='input PDB file')
     parser.add_argument('-c', '--chains', dest='chains', help='chains to extract sequence for')
-    parser.add_argument('-o', '--output', dest='output', help='output fasta file')
+    parser.add_argument('-f', '--output', dest='output', help='output fasta file')
+    parser.add_argument('-r', '--resseq', dest='resseq', help='residue seq number in the PDB file')
     args = parser.parse_args()
     
-    print( "input file:          " + args.input )
+    print( "input file:          " + args.pdb)
     print( "output file:         " + args.output )
     print( "chains:              " + args.chains )
     
     # extract sequences from SEQRES records
-    pdb_id = basename(args.input).split('.')[0]
-    with open(args.input, 'rt') as f:
+    pdb_id = basename(args.pdb).split('.')[0]
+    with open(args.pdb, 'rt') as f:
         seqres_sequences = list(SeqIO.parse(f, 'pdb-seqres'))
     
     # extract sequences from residues with resolved coordinates
-    structure = PDB.PDBParser().get_structure(id=pdb_id, file=args.input)
+    structure = PDB.PDBParser().get_structure(id=pdb_id, file=args.pdb)
     model = structure[0]
     peptide_builder = PDB.Polypeptide.PPBuilder()
     sequences = []
+    resseq_ids = []
     for c in args.chains:
+        residues = model[c].get_residues()
+        resseq_ids.append(tuple(r.get_id()[1] for r in residues if r.get_id()[0][0] != 'H' and r.get_id()[0] != 'W'))
         chain = peptide_builder.build_peptides(model[c])
         coord_sequence = chain[0].get_sequence()
         print('Sequence for chain ' + c + ' extracted from coordinates:')
@@ -67,6 +71,13 @@ def main():
     # write sequences to a fasta file
     with open(args.output, 'wt') as f:
         SeqIO.write(sequences, f, 'fasta')
+
+    # write resseq ids
+    with open(args.resseq, 'wt') as f:
+        for i, resseq in enumerate(resseq_ids):
+            f.write('> ' + args.chains[i] + '\n')
+            f.write(','.join(str(j) for j in resseq))
+
         
 if __name__ == '__main__':
     main()
