@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
     @summary: This program computes residue spatial conservation index which is defined
         as the sum of c/r^2 across all neighbor residues. c is the conservation of a
