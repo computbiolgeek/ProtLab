@@ -84,6 +84,7 @@ def ParseBFactors( b_factor_file ):
         d = {int( row[0] ): float( row[1] ) for row in reader if row}
     return d
 
+
 def SetBFactors( chain, b_factors ):
     """
         @summary: Sets residue b-factors to given values.
@@ -118,6 +119,7 @@ def ComputeSpatialConservation( residue, atom , neighbor_list ):
     # get all b factors
     b_factors = neighbor_list.GetAllBFactors()
     return np.sum( b_factors * ( 1.0 / d_ijs ** 2 ) )
+
 
 def main():
     """
@@ -197,6 +199,7 @@ def main():
         csv_f = csv.writer( f )
         for row in spatial_conservations:
             csv_f.writerow( row )
+
 
 if __name__ == "__main__":
     main()

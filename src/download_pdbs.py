@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
     @summary: This script takes in a list of PDB IDs and retrieves the PDB coordinate file for each ID.
     @author: Bian Li
@@ -38,7 +40,7 @@ for pdb_id in pdb_ids:
     # retrieve current PDB file and store it under a directory tree
     if not os.path.exists( args.dir + "pdb" + four_letter + ".ent" ):
         try:
-            pdbl.retrieve_pdb_file( four_letter, pdir = args.dir )
+            pdbl.retrieve_pdb_file( four_letter, pdir = args.dir, file_format = "pdb")
         except Exception:
             print( "Exception occurred while retrieving the PDB file for " + four_letter )
             continue
