@@ -9,6 +9,7 @@
     Reference: A. Shrake & J. A. Rupley. "Environment and Exposure to
     Solvent of Protein Atoms. Lysozyme and Insulin." J Mol Biol. 79
     (1973) 351- 371.
+    @todo: to be completed
 """
 
 from collections import defaultdict

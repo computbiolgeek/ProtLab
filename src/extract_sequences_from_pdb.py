@@ -50,7 +50,7 @@ def main():
                     print(record.seq, '\n')
             # pairwise alignment between the two sequences
             print('Here is an alignment of the two sequences:')
-            alignment = pairwise2.align.globaldx(coord_sequence, record.seq, matlist.blosum62)
+            alignment = pairwise2.align.globalms(coord_sequence, record.seq, 1, -0.5, -10, 0)
             print(pairwise2.format_alignment(*alignment[0]))
             
             # ask for which sequence to choose
