@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
     @summary: This script takes a database in fasta format and a sequence id,
         it extracts the sequence corresponding to the given id from the database.
