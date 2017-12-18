@@ -13,6 +13,7 @@ class MultipleAlignmentArray( object ):
     """
     
     alphabet = ['A','R','N','D','C','Q','E','G','H','I','L','K','M','F','P','S','T','W','Y','V']
+    
     # amino acid background relative frequencies 
     bg_rf = np.array([
                         0.085786, 
@@ -44,7 +45,7 @@ class MultipleAlignmentArray( object ):
         ['K','R'],  # positive 
         ['D','E'],  # negative 
         ['G','P'] # glycine and proline
-        ]    
+    ]    
         
     def __init__( self, msa = None, subject_index = 0, gap = '-', pseudocount = 0 ):
         self.__msa = msa
@@ -68,29 +69,34 @@ class MultipleAlignmentArray( object ):
     @property
     def subject_index( self ):
         """
+        Get the index of the subject sequence.
         """
         return self.__subject_index
     
     @subject_index.setter
     def subject_index( self, index ):
         """
+        Set the index of the subject sequence to the given integer.
         """
         if index < 0 or index > len( self.__msa ):
-            raise ValueError( "Invalid index of subject sequence" )
+            raise ValueError( 'Invalid index of subject sequence, given integer must be between '
+                             '0 and ' + str(len(self.__msa)) )
         self.__subject_index = index
         
     @property
     def gap( self ):
         """
+        Get the gap character.
         """
         return self.__gap
     
     @gap.setter
     def gap( self, gap ):
         """
+        Set the gap character to the given character.
         """
-        if gap not in ['-', '.', '*']:
-            raise ValueError( "Invalid symbol for gap" )
+        if gap not in {'-', '.', '*'}:
+            raise ValueError('The given gap character ' + str(gap) + ' is invalid.')
         self.__gap = gap
            
     @property
