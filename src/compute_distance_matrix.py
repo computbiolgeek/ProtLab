@@ -33,6 +33,14 @@ def compute_distance(res_a, res_b):
     return np.linalg.norm(centroid_a - centroid_b)
 
 
+def compute_shortest_distance(res_a, res_b):
+    '''
+    Returns the smallest of the distances between the heavy atoms of residue a and those of residue b.
+    '''
+    distances = [np.linalg.norm(atom_a - atom_b) for atom_a in res_a.get_list() for atom_b in res_b.get_list()]
+    return min(distances)
+
+
 def main():
     '''
     '''
@@ -66,7 +74,7 @@ def main():
     residues_b = [model[chain_b][int(pos[1])] for pos in res_ids_b]
 
     # compute pair distances between residues in the first chain and residues in the second chain
-    pair_distances = np.array([[compute_distance(a, b) for b in residues_b] for a in residues_a])
+    pair_distances = np.array([[compute_shortest_distance(a, b) for b in residues_b] for a in residues_a])
     indices = [''.join([chain_a, str(res.id[1]), res.resname]) for res in residues_a]
     names = [''.join([chain_b, str(res.id[1]), res.resname]) for res in residues_b]
     pair_distances_df = pd.DataFrame(pair_distances, index=indices, columns=names)
