@@ -32,15 +32,15 @@ def main():
     sequences = []
     resseq_ids = []
     for c in args.chains:
-        residues = model[c].get_residues()
-        resseq_ids.append(tuple(r.get_id()[1] for r in residues if r.get_id()[0][0] != 'H' and r.get_id()[0] != 'W'))
+        residues = [r for r in model[c].get_residues() if PDB.is_aa(r)]
+        resseq_ids.append(r.get_id()[1] for r in residues)
         chain = peptide_builder.build_peptides(model[c])
         coord_sequence = chain[0].get_sequence()
         print('Sequence for chain ' + c + ' extracted from coordinates:')
         print(coord_sequence, '\n')
         # if the SEQRES records are missing from the PDB file, use sequence from coordinates
         if len(seqres_sequences) == 0:
-            print('SEQRES records in the given PDB file are missing! Using sequence'
+            print('SEQRES records in the given PDB file are missing! Using sequence '
                   'extracted from coordinates.')
             sequence = coord_sequence
         else:

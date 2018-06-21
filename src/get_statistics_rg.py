@@ -1,9 +1,6 @@
 """
-    @summary:
     @author: Bian Li
     @contact: bian.li@vanderbilt.edu or comput.biol.geek@gmail.com
-    @change:
-    @copyright:
 """
 
 from argparse import ArgumentParser

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 """
-    @summary:
     @author: Bian Li
     @contact: bian.li@vanderbilt.edu
     @change: 12/12/16 the argument to the np.cos() function was converted to radians
@@ -83,8 +82,6 @@ def ComputeContactNumber( residue,
     return cn
 
 def main():
-    """
-    """
     # specify command line flags
     parser = ArgumentParser( description = "Hi there, I compute contact numbers for you." )
     parser.add_argument( "-i", "--infile", dest = "infile", required = True,
@@ -156,6 +153,7 @@ def main():
         csv_f = csv.writer( f )
         for row in contact_numbers:
             csv_f.writerow( row )
+
 
 if __name__ == "__main__":
     main()

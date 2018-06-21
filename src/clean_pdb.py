@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
     @summary: This is a simple script that does PDB file cleaning. By default, it does not split chains
         and everything other than amino acid residues are removed. However, chain splitting can be specified

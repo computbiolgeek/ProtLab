@@ -122,8 +122,6 @@ def ComputeSpatialConservation( residue, atom , neighbor_list ):
 
 
 def main():
-    """
-    """
     parser = ArgumentParser( description = "Hi there, I compute residue spatial conservation for you!" )
     parser.add_argument( "-p", "--pdb", dest = "pdb", required = True,
                         help = "PDB file of mono-chain protein or homo-oligomers" )

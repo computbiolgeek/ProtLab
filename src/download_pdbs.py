@@ -8,9 +8,8 @@
 """
 
 from argparse import ArgumentParser
-import os
+import os, sys
 from Bio.PDB import PDBList, PDBParser, PDBIO
-
 
 def main():
     """
@@ -23,6 +22,8 @@ def main():
                          help = "whether the PDB IDs contains chain IDs" )
     parser.add_argument( "-d", "--dir", dest = "dir",
                          help = "path to the directory where to store the PDB files" )
+    parser.add_argument( "-b", "--database", dest = "db",
+                         help = "name of the protein structure database from which to download files" )
     parser.add_argument( "-v", "--verbose", dest = "verbose", action = "store_true",
                          help = "print details while downloading" )
     args = parser.parse_args()
@@ -49,7 +50,11 @@ def main():
         # retrieve current PDB file and store it under a directory tree
         pdb_file = args.dir + "/" + mid_letters + "/" + four_letter + ".pdb"
         if not os.path.exists( pdb_file ) or os.stat( pdb_file ).st_size == 0:
-            curl_pdb = "curl https://files.rcsb.org/view/" + four_letter + ".pdb -o " + pdb_file 
+            print(args.db)
+            if args.db == "OPM":
+                curl_pdb = "curl http://opm.phar.umich.edu/pdb/" + four_letter + ".pdb -o " + pdb_file 
+            else: 
+                curl_pdb = "curl https://files.rcsb.org/view/" + four_letter + ".pdb -o " + pdb_file 
             os.system( curl_pdb )
         else:
             print( pdb_file, "already exists and is not empty, skip ..." )
@@ -63,11 +68,14 @@ def main():
             else:
                 pdb_parser = PDBParser( PERMISSIVE = 1 )
                 structure = pdb_parser.get_structure( four_letter, pdb_file )
-                chain = structure[0][chain_id]
+                try:
+                    chain = structure[0][chain_id]
+                except KeyError:
+                    print("No chain " + chain_id + " was found in " + pdb_file)
+                    sys.exit(1) 
                 pdb_writer = PDBIO()
                 pdb_writer.set_structure( chain )
                 pdb_writer.save( chain_file )
-
 
 
 if __name__ == "__main__":
